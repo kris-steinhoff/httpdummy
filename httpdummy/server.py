@@ -53,10 +53,10 @@ def main():
     parser = argparse.ArgumentParser(
         description='A dummy http server that prints requests and responds')
 
-    parser.add_argument('-H', '--headers', type=str2bool, nargs='?', const=True,
-                        default=getenv('HTTPDUMMY_HEADERS'))
-    parser.add_argument('-B', '--body', type=str2bool, nargs='?', const=True,
-                        default=getenv('HTTPDUMMY_BODY'))
+    parser.add_argument('-H', '--headers', type=str2bool, nargs='?',
+                        const=True, default=getenv('HTTPDUMMY_HEADERS'))
+    parser.add_argument('-B', '--body', type=str2bool, nargs='?',
+                        const=True, default=getenv('HTTPDUMMY_BODY'))
     parser.add_argument('-a', '--address', type=str,
                         default=getenv('HTTPDUMMY_ADDRESS', '127.0.0.1'))
     parser.add_argument('-p', '--port', type=int,
