@@ -16,10 +16,10 @@ class HttpDummy(object):
         )
 
         if self.conf.get('headers'):
-            print(Style.DIM + str(request.headers).strip())
-            if self.conf.get('body'):
+            for (k, v) in request.headers:
+                print(f'{Style.DIM}{k}: {v}{Style.NORMAL}')
+            if self.conf.get('body') and len(request.data) > 0:
                 print()
-            print(Style.NORMAL, end='')
 
         if self.conf.get('body') and len(request.data) > 0:
             print(Style.DIM + request.data.decode('utf-8').strip()
