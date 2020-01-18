@@ -1,11 +1,8 @@
-import logging
 from os import getenv
-from textwrap import indent
 
 from colorama import Style
+from werkzeug.serving import WSGIRequestHandler
 from werkzeug.wrappers import Request, Response
-
-logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
 
 class HttpDummy(object):
@@ -40,7 +37,12 @@ class HttpDummy(object):
         return self.wsgi_app(environ, start_response)
 
 
-if __name__ == '__main__':
+class NoLogRequestHandler(WSGIRequestHandler):
+    def log_request(self, *args, **kwargs):
+        pass
+
+
+def main():
     import argparse
 
     from werkzeug.serving import run_simple
@@ -52,10 +54,15 @@ if __name__ == '__main__':
                         default=getenv('HTTPDUMMY_HEADERS'))
     parser.add_argument('-B', '--body', action='store_true',
                         default=getenv('HTTPDUMMY_BODY'))
+    parser.add_argument('-a', '--address', type=str,
+                        default=getenv('HTTPDUMMY_ADDRESS', '127.0.0.1'))
+    parser.add_argument('-p', '--port', type=int,
+                        default=getenv('HTTPDUMMY_PORT', 5000))
     args = parser.parse_args()
 
     app = HttpDummy(vars(args))
-    run_simple('127.0.0.1', 5000, app,
+    run_simple(args.address, args.port, app,
+               request_handler=NoLogRequestHandler,
                use_debugger=(
                    getenv('HTTPDUMMY_DEBUGGER', '0').lower()
                    in ('1', 'on', 'yes')),
