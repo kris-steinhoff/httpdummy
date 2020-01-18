@@ -6,6 +6,12 @@ setup(name='httpdummy',
       url='http://github.com/ksofa2/httpdummy',
       license='Apache 2.0',
       packages=['httpdummy'],
+      install_requires=[
+          'colorama ~= 0.4',
+          'PyYAML ~= 5.3',
+          'watchdog ~= 0.9',
+          'Werkzeug ~= 0.16',
+      ],
       entry_points={
           'console_scripts': ['httpdummy=httpdummy.server:main'],
       },
