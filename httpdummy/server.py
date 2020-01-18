@@ -12,7 +12,7 @@ class HttpDummy(object):
     def dispatch_request(self, request):
         print(
             f'{Style.BRIGHT}{request.method}{Style.NORMAL} '
-            f'{request.path} {request.environ.get("SERVER_PROTOCOL")}'
+            f'{request.environ.get("RAW_URI")}'
         )
 
         if self.conf.get('headers'):
