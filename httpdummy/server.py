@@ -47,12 +47,15 @@ def main():
 
     from werkzeug.serving import run_simple
 
+    def str2bool(val):
+        return str(val).lower() in ('true', 'yes', 'y', 'on', '1')
+
     parser = argparse.ArgumentParser(
         description='A dummy http server that prints requests and responds')
 
-    parser.add_argument('-H', '--headers', action='store_true',
+    parser.add_argument('-H', '--headers', type=str2bool, nargs='?', const=True,
                         default=getenv('HTTPDUMMY_HEADERS'))
-    parser.add_argument('-B', '--body', action='store_true',
+    parser.add_argument('-B', '--body', type=str2bool, nargs='?', const=True,
                         default=getenv('HTTPDUMMY_BODY'))
     parser.add_argument('-a', '--address', type=str,
                         default=getenv('HTTPDUMMY_ADDRESS', '127.0.0.1'))
@@ -63,7 +66,5 @@ def main():
     app = HttpDummy(vars(args))
     run_simple(args.address, args.port, app,
                request_handler=NoLogRequestHandler,
-               use_debugger=(
-                   getenv('HTTPDUMMY_DEBUGGER', '0').lower()
-                   in ('1', 'on', 'yes')),
+               use_debugger=str2bool(getenv('HTTPDUMMY_DEBUGGER', '0')),
                use_reloader=True)
