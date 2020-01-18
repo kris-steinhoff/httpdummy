@@ -22,8 +22,8 @@ class HttpDummy(object):
                 print()
 
         if self.conf.get('body') and len(request.data) > 0:
-            print(Style.DIM + request.data.decode('utf-8').strip()
-                  + Style.NORMAL)
+            for line in request.data.decode('utf-8').splitlines():
+                print(f'{Style.DIM}{line}{Style.NORMAL}')
         resp = Response('Hello World!')
         resp.headers['Server'] = 'HTTPDummy'
         return resp
