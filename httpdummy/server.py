@@ -38,6 +38,7 @@ class HttpDummy(object):
 
 
 class NoLogRequestHandler(WSGIRequestHandler):
+    '''This class just supresses the standard werkzeug request logging.'''
     def log_request(self, *args, **kwargs):
         pass
 
