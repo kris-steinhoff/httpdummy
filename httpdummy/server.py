@@ -1,8 +1,36 @@
 from os import getenv
 
-from colorama import Style
-from werkzeug.serving import WSGIRequestHandler
+from colorama import Fore, Style
+from werkzeug.serving import WSGIRequestHandler, is_running_from_reloader
 from werkzeug.wrappers import Request, Response
+
+
+def print_logo():
+    '''Print the HTTPDummy logo. uses is_running_from_reloader to prevent
+    double printing on startup and reprinting on reload.'''
+
+    LOGO = '''
+                                    __________________
+                                   /        ________  \\
+                                  /   _____|       |___\\
+                                 |   /  __         __   |
+                                /|  |  /o \   _   /o \  |  
+                               | | /           \        |
+                                \|/   __           __   |
+                                  \    |\_________/|   /   
+                                   \___|___________|__/                  
+                                        |         |
+                                       /\_________/\\
+    _   _ _____ _____ ____  ____     _/     \ /     \_
+   | | | |_   _|_   _|  _ \|  _ \ _ | _ _ __ V__  _ __|___  _   _
+   | |_| | | |   | | | |_) | | | | | | | '_ ` _ \| '_ ` _ \| | | |
+   |  _  | | |   | | |  __/| |_| | |_| | | | | | | | | | | | |_| |
+   |_| |_| |_|   |_| |_|   |____/ \__,_|_| |_| |_|_| |_| |_|\__, |
+                                                            |___/
+'''
+    if not is_running_from_reloader():
+        for line in LOGO.splitlines():
+            print(f'{Fore.CYAN}{line}{Fore.RESET}')
 
 
 class HttpDummy(object):
@@ -65,6 +93,9 @@ def main():
     args = parser.parse_args()
 
     app = HttpDummy(vars(args))
+
+    print_logo()
+
     run_simple(args.address, args.port, app,
                request_handler=NoLogRequestHandler,
                use_debugger=str2bool(getenv('HTTPDUMMY_DEBUGGER', '0')),
