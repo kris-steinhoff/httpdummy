@@ -1,4 +1,6 @@
 from os import getenv
+from yaml import safe_load as yaml_safe_load
+
 
 from colorama import Fore, Style
 from werkzeug.serving import WSGIRequestHandler, is_running_from_reloader
@@ -36,6 +38,30 @@ def print_logo():
 class HttpDummy(object):
     def __init__(self, conf):
         self.conf = conf
+        self._responses = {}
+        if self.conf['response_file']:
+            try:
+                self._responses = yaml_safe_load(
+                    self.conf['response_file'])['responses']
+            except Exception as exc:
+                raise exc
+
+    def get_response(self, path, method='GET'):
+        r = Response()
+        r.status_code = 200
+        r.headers.set('Server', 'HTTPDummy')
+        r.data = 'HTTPDummy'
+
+        fresp = (self._responses.get(f'{method} {path}', None) or
+                 self._responses.get(path, None))
+
+        if fresp:
+            r.status_code = int(fresp.get('status', r.status_code))
+            for (k, v) in fresp.get('headers', {}).items():
+                r.headers.set(k, v)
+            r.data = fresp.get('body', r.data)
+
+        return r
 
     def dispatch_request(self, request):
         print(
@@ -52,9 +78,8 @@ class HttpDummy(object):
         if self.conf.get('body') and len(request.data) > 0:
             for line in request.data.decode('utf-8').splitlines():
                 print(f'{Style.DIM}{line}{Style.NORMAL}')
-        resp = Response('Hello World!')
-        resp.headers['Server'] = 'HTTPDummy'
-        return resp
+
+        return self.get_response(request.path, request.method)
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
@@ -90,13 +115,26 @@ def main():
                         default=getenv('HTTPDUMMY_ADDRESS', '127.0.0.1'))
     parser.add_argument('-p', '--port', type=int,
                         default=getenv('HTTPDUMMY_PORT', 5000))
+    parser.add_argument('-r', '--response-file', type=argparse.FileType('r'),
+                        nargs='?',
+                        default=getenv('HTTPDUMMY_RESPONSE_FILE', None))
     args = parser.parse_args()
+
+    use_reloader = (
+        str2bool(getenv('HTTPDUMMY_RELOADER', '0')) or args.response_file)
+    if args.response_file:
+        extra_files = [args.response_file.name]
+    else:
+        extra_files = None
 
     app = HttpDummy(vars(args))
 
     print_logo()
 
-    run_simple(args.address, args.port, app,
-               request_handler=NoLogRequestHandler,
-               use_debugger=str2bool(getenv('HTTPDUMMY_DEBUGGER', '0')),
-               use_reloader=True)
+    run_simple(
+        args.address, args.port, app,
+        request_handler=NoLogRequestHandler,
+        use_debugger=str2bool(getenv('HTTPDUMMY_DEBUGGER', '0')),
+        use_reloader=use_reloader,
+        extra_files=extra_files,
+    )
