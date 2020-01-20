@@ -59,13 +59,22 @@ httpdummy --response-file ~/repsonses.yaml
 ```
 ---
 responses:
-  POST /api/foo:
-    status: 201
+  GET /api/foo:
+    status: 200
     headers:
       Foo: bar
       Sna: fu
     body: |+
       Hi there!
+
+      How are you?
+
+  POST /api/foo:
+    status: 201
+    headers:
+      Content-type: application/json
+    body: |+
+      {"answer": 42}
 ```
 
 ... will make HTTPDummy respond to POST requests to `/api/foo` with the 201 status code, and the configured headers and body.
