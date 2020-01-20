@@ -69,3 +69,42 @@ responses:
 ```
 
 ... will make HTTPDummy respond to POST requests to `/api/foo` with the 201 status code, and the configured headers and body.
+
+NOTE: When started with a response file, HTTPDummy will listen for changes to that file and restart when a change is detected to reload the response definitions.
+
+## Environment Variables
+
+These environmental variables will be used as values for their corresponding command-line options. If the command-line option is used, that value will override the one set in the environment.
+
+  - `HTTPDUMMY_ADDRESS`
+  - `HTTPDUMMY_PORT`
+  - `HTTPDUMMY_HEADERS`
+  - `HTTPDUMMY_BODY`
+  - `HTTPDUMMY_RESPONSE_FILE`
+
+## Docker
+
+An image for HTTPDummy is available on DockerHub: <https://hub.docker.com/r/ksofa2/httpdummy>
+
+```
+docker run -it -p 127.0.0.1:5000:5000 ksofa2/httpdummy
+```
+
+NOTE: The `HTTPDUMMY_HEADERS` and `HTTPDUMMY_BODY` are turned on by default in the Docker image.
+
+An example `docker-compose.yaml` file:
+
+```
+---
+version: '3'
+
+services:
+  httpdummy:
+    image: ksofa2/httpdummy
+    environment:
+      - HTTPDUMMY_RESPONSE_FILE=/srv/responses.yaml
+    ports:
+      - 127.0.0.1:5000:5000
+    volumes:
+      - ./responses.yaml:/srv/responses.yaml
+```
