@@ -24,8 +24,16 @@ HTTPDummy is a development HTTP server tool that prints information about the re
 
 ## Installation
 
+With PIP:
+
 ```
 pip install httpdummy
+```
+
+With Docker:
+
+```
+docker pull ksofa2/httpdummy
 ```
 
 ## Usage
