@@ -47,3 +47,25 @@ optional arguments:
 
   - Add the `-H` flag to print request headers.
   - Add the `-B` flag to print request body.
+
+Use the `--response-file` to specify a YAML file to set up custom responses for arbitrary method / path combinations. For example, this command...
+
+```
+httpdummy --response-file ~/repsonses.yaml
+```
+
+... with `~/responses.yaml` contents ...
+
+```
+---
+responses:
+  POST /api/foo:
+    status: 201
+    headers:
+      Foo: bar
+      Sna: fu
+    body: |+
+      Hi there!
+```
+
+... will make HTTPDummy respond to POST requests to `/api/foo` with the 201 status code, and the configured headers and body.
