@@ -135,6 +135,7 @@ def main():
         args.address, args.port, app,
         request_handler=NoLogRequestHandler,
         use_debugger=str2bool(getenv('HTTPDUMMY_DEBUGGER', '0')),
+        reloader_type=getenv('HTTPDUMMY_RELOADER_TYPE', 'watchdog'),
         use_reloader=use_reloader,
         extra_files=extra_files,
     )
