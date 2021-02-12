@@ -1,6 +1,5 @@
-from os import getenv
+from base64 import b64decode
 from yaml import safe_load as yaml_safe_load
-
 
 from colorama import Fore, Style
 from werkzeug.serving import WSGIRequestHandler, is_running_from_reloader
@@ -47,23 +46,10 @@ class HttpDummy(object):
                 raise exc
 
     def get_response(self, path, method='GET'):
-        r = Response()
-        r.status_code = 200
-        r.headers.set('Server', 'HTTPDummy')
-        r.data = 'HTTPDummy'
-
-        fresp = (self._responses.get(f'{method} {path}', None) or
-                 self._responses.get(path, None))
-
-        if fresp:
-            r.status_code = int(fresp.get('status', r.status_code))
-            for (k, v) in fresp.get('headers', {}).items():
-                r.headers.set(k, v)
-            r.data = fresp.get('body', r.data)
 
         return r
 
-    def dispatch_request(self, request):
+    def print_request_info(self, request):
         print(
             f'{Style.BRIGHT}{request.method}{Style.NORMAL} '
             f'{request.environ.get("RAW_URI")}'
@@ -79,11 +65,45 @@ class HttpDummy(object):
             for line in request.data.decode('utf-8').splitlines():
                 print(f'{Style.DIM}{line}{Style.NORMAL}')
 
-        return self.get_response(request.path, request.method)
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
-        response = self.dispatch_request(request)
+        self.print_request_info(request)
+
+        response = Response()
+        response.status_code = 200
+        response.headers.set('Server', 'HTTPDummy')
+
+        configured_resp = (
+            self._responses.get(f'{request.method} {request.path}', None)
+            or self._responses.get(request.path, None)
+        )
+
+        if not configured_resp:
+            response.data = 'HTTPDummy'
+            return response(environ, start_response)
+
+        # Set status code
+        response.status_code = int(
+            configured_resp.get('status', response.status_code))
+
+        # Set headers
+        for (k, v) in configured_resp.get('headers', {}).items():
+            response.headers.set(k, v)
+
+        # Set body
+        if 'body_text' in configured_resp.keys():
+            response.data = configured_resp['body_text']
+        elif 'body_base64' in configured_resp.keys():
+            response.data = b64decode(configured_resp['body_base64'])
+        # elif 'body_file' in configured_resp.keys():
+        #     response.data = open(configured_resp['body_file'])
+        elif 'body' in configured_resp.keys():
+            # TODO deprecation warning
+            response.data = configured_resp['body']
+        else:
+            response.data = 'HTTPDummy'
+
         return response(environ, start_response)
 
     def __call__(self, environ, start_response):
@@ -94,48 +114,3 @@ class NoLogRequestHandler(WSGIRequestHandler):
     '''This class just supresses the standard werkzeug request logging.'''
     def log_request(self, *args, **kwargs):
         pass
-
-
-def main():
-    import argparse
-
-    from werkzeug.serving import run_simple
-
-    def str2bool(val):
-        return str(val).lower() in ('true', 'yes', 'y', 'on', '1')
-
-    parser = argparse.ArgumentParser(
-        description='A dummy http server that prints requests and responds')
-
-    parser.add_argument('-H', '--headers', type=str2bool, nargs='?',
-                        const=True, default=getenv('HTTPDUMMY_HEADERS'))
-    parser.add_argument('-B', '--body', type=str2bool, nargs='?',
-                        const=True, default=getenv('HTTPDUMMY_BODY'))
-    parser.add_argument('-a', '--address', type=str,
-                        default=getenv('HTTPDUMMY_ADDRESS', '127.0.0.1'))
-    parser.add_argument('-p', '--port', type=int,
-                        default=getenv('HTTPDUMMY_PORT', 5000))
-    parser.add_argument('-r', '--response-file', type=argparse.FileType('r'),
-                        nargs='?',
-                        default=getenv('HTTPDUMMY_RESPONSE_FILE', None))
-    args = parser.parse_args()
-
-    use_reloader = (
-        str2bool(getenv('HTTPDUMMY_RELOADER', '0')) or args.response_file)
-    if args.response_file:
-        extra_files = [args.response_file.name]
-    else:
-        extra_files = None
-
-    app = HttpDummy(vars(args))
-
-    print_logo()
-
-    run_simple(
-        args.address, args.port, app,
-        request_handler=NoLogRequestHandler,
-        use_debugger=str2bool(getenv('HTTPDUMMY_DEBUGGER', '0')),
-        reloader_type=getenv('HTTPDUMMY_RELOADER_TYPE', 'watchdog'),
-        use_reloader=use_reloader,
-        extra_files=extra_files,
-    )

@@ -22,6 +22,6 @@ setup(name='httpdummy',
           'Werkzeug ~= 0.16',
       ],
       entry_points={
-          'console_scripts': ['httpdummy=httpdummy.server:main'],
+          'console_scripts': ['httpdummy=httpdummy.__main__'],
       },
       zip_safe=False)
