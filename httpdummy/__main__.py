@@ -6,40 +6,9 @@ from werkzeug.serving import run_simple
 from httpdummy.server import HttpDummy, NoLogRequestHandler, print_logo
 
 def main():
+
     parser = argparse.ArgumentParser(
         description='A dummy http server that prints requests and responds')
-
-    show_headers_subgroup = parser.add_mutually_exclusive_group()
-    show_headers_subgroup.add_argument(
-        '-H',
-        # help='print request headers to stdout',
-        action='store_const',
-        const='on',
-        dest='print_headers',
-    )
-    show_headers_subgroup.add_argument(
-        '--print-headers',
-        help='print request headers to stdout',
-        choices=['on', 'off'],
-        default='off',
-        dest='print_headers',
-    )
-
-    show_body_subgroup = parser.add_mutually_exclusive_group()
-    show_body_subgroup.add_argument(
-        '-B',
-        # help='print request body to stdout',
-        action='store_const',
-        const='on',
-        dest='print_body',
-        )
-    show_body_subgroup.add_argument(
-        '--print-body',
-        help='print request body to stdout',
-        choices=['on', 'off'],
-        default='off',
-        dest='print_body',
-    )
 
     parser.add_argument(
         '-a', '--address',
@@ -55,23 +24,55 @@ def main():
         type=int,
     )
 
+    print_headers_subgroup = parser.add_mutually_exclusive_group()
+    print_headers_subgroup.add_argument(
+        '-H',
+        dest='print_headers',
+        action='store_const',
+        const='on',
+        default='off',
+    )
+    print_headers_subgroup.add_argument(
+        '--print-headers',
+        help='print request headers to stdout',
+        choices=['on', 'off'],
+        default='off',
+    )
+
+    print_body_subgroup = parser.add_mutually_exclusive_group()
+    print_body_subgroup.add_argument(
+        '-B',
+        dest='print_body',
+        action='store_const',
+        const='on',
+        default='off',
+    )
+    print_body_subgroup.add_argument(
+        '--print-body',
+        help='print request body to stdout',
+        choices=['on', 'off'],
+        default='off',
+    )
+
     parser.add_argument(
-        '--werkzeug-reloader',
-        help='enable server reloader (default on)',
+        '--server-reloader',
+        help=(
+            'enable Werkzeug server reloader (default on if config_file is '
+            'specified)'),
         choices=['on', 'off'],
         default='on',
     )
 
     parser.add_argument(
-        '--werkzeug-reloader-type',
-        help='server reloader type (default watchdog)',
+        '--server-reloader-type',
+        help='Werkzeug server reloader type (default watchdog)',
         choices=['stat', 'watchdog'],
         default='watchdog',
     )
 
     parser.add_argument(
-        '--werkzeug-debugger',
-        help='enable server debugger (default off)',
+        '--server-debugger',
+        help='enable Werkzeug server debugger (default off)',
         choices=['on', 'off'],
         default='off',
     )
@@ -85,6 +86,12 @@ def main():
 
     args = parser.parse_args()
 
+    for a in [
+        'print_headers', 'print_body',
+        'server_reloader', 'server_debugger',
+    ]:
+        setattr(args, a, getattr(args, a) == 'on')
+
     extra_files = ['server.py']
     if args.config_file:
         extra_files.append(args.config_file.name)
@@ -96,9 +103,9 @@ def main():
     run_simple(
         args.address, args.port, app,
         request_handler=NoLogRequestHandler,
-        use_debugger=args.werkzeug_debugger == 'on',
-        reloader_type=args.werkzeug_reloader_type,
-        use_reloader=args.werkzeug_reloader == 'on' and args.config_file,
+        use_debugger=args.server_debugger,
+        reloader_type=args.server_reloader_type,
+        use_reloader=args.server_reloader and args.config_file,
         extra_files=extra_files,
     )
 

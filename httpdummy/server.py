@@ -53,16 +53,13 @@ class HttpDummy(object):
             f'{request.environ.get("RAW_URI")}'
         )
 
-        print_headers = self.config.get('print_headers') == 'on'
-        print_body = self.config.get('print_body') == 'on'
-
-        if print_headers:
+        if self.config.get('print_headers'):
             for (k, v) in request.headers:
                 print(f'{Style.DIM}{k}: {v}{Style.NORMAL}')
-            if print_body and len(request.data) > 0:
+            if self.config.get('print_body') and len(request.data) > 0:
                 print()
 
-        if print_body and len(request.data) > 0:
+        if self.config.get('print_body') and len(request.data) > 0:
             for line in request.data.decode('utf-8').splitlines():
                 print(f'{Style.DIM}{line}{Style.NORMAL}')
 
