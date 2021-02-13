@@ -8,6 +8,7 @@ from httpdummy.server import HttpDummy, NoLogRequestHandler, print_logo
 def main():
 
     parser = argparse.ArgumentParser(
+        prog='httpdummy',
         description='A dummy http server that prints requests and responds')
 
     parser.add_argument(
