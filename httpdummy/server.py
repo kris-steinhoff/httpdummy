@@ -37,6 +37,7 @@ def print_logo():
 class HttpDummy(object):
     def __init__(self, **kwargs):
         config_file = kwargs.get('config_file')
+        config_all = {}
         if config_file:
             try:
                 config_all = yaml_safe_load(
