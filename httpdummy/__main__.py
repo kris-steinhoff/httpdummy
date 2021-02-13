@@ -5,43 +5,102 @@ from werkzeug.serving import run_simple
 
 from httpdummy.server import HttpDummy, NoLogRequestHandler, print_logo
 
+def main():
+    parser = argparse.ArgumentParser(
+        description='A dummy http server that prints requests and responds')
 
-def str2bool(val):
-    return str(val).lower() in ('true', 'yes', 'y', 'on', '1')
+    show_headers_subgroup = parser.add_mutually_exclusive_group()
+    show_headers_subgroup.add_argument(
+        '-H',
+        # help='print request headers to stdout',
+        action='store_const',
+        const='on',
+        dest='print_headers',
+    )
+    show_headers_subgroup.add_argument(
+        '--print-headers',
+        help='print request headers to stdout',
+        choices=['on', 'off'],
+        default='off',
+        dest='print_headers',
+    )
 
+    show_body_subgroup = parser.add_mutually_exclusive_group()
+    show_body_subgroup.add_argument(
+        '-B',
+        # help='print request body to stdout',
+        action='store_const',
+        const='on',
+        dest='print_body',
+        )
+    show_body_subgroup.add_argument(
+        '--print-body',
+        help='print request body to stdout',
+        choices=['on', 'off'],
+        default='off',
+        dest='print_body',
+    )
 
-parser = argparse.ArgumentParser(
-    description='A dummy http server that prints requests and responds')
+    parser.add_argument(
+        '-a', '--address',
+        help='address to bind to (default 127.0.0.1)',
+        default='127.0.0.1',
+        type=str,
+    )
 
-parser.add_argument('-H', '--headers', type=str2bool, nargs='?',
-                    const=True, default=getenv('HTTPDUMMY_HEADERS'))
-parser.add_argument('-B', '--body', type=str2bool, nargs='?',
-                    const=True, default=getenv('HTTPDUMMY_BODY'))
-parser.add_argument('-a', '--address', type=str,
-                    default=getenv('HTTPDUMMY_ADDRESS', '127.0.0.1'))
-parser.add_argument('-p', '--port', type=int,
-                    default=getenv('HTTPDUMMY_PORT', 5000))
-parser.add_argument('-r', '--response-file', type=argparse.FileType('r'),
-                    nargs='?',
-                    default=getenv('HTTPDUMMY_RESPONSE_FILE', None))
-args = parser.parse_args()
+    parser.add_argument(
+        '-p', '--port',
+        help='port to open on (default 5000)',
+        default=5000,
+        type=int,
+    )
 
-use_reloader = (
-    str2bool(getenv('HTTPDUMMY_RELOADER', 'on')) and args.response_file)
+    parser.add_argument(
+        '--werkzeug-reloader',
+        help='enable server reloader (default on)',
+        choices=['on', 'off'],
+        default='on',
+    )
 
-extra_files = ['server.py']
-if args.response_file:
-    extra_files.append(args.response_file.name)
+    parser.add_argument(
+        '--werkzeug-reloader-type',
+        help='server reloader type (default watchdog)',
+        choices=['stat', 'watchdog'],
+        default='watchdog',
+    )
 
-app = HttpDummy(vars(args))
+    parser.add_argument(
+        '--werkzeug-debugger',
+        help='enable server debugger (default off)',
+        choices=['on', 'off'],
+        default='off',
+    )
 
-print_logo()
+    parser.add_argument(
+        dest='config_file',
+        help='path to configuration file',
+        type=argparse.FileType('r'),
+        nargs='?',
+    )
 
-run_simple(
-    args.address, args.port, app,
-    request_handler=NoLogRequestHandler,
-    use_debugger=str2bool(getenv('HTTPDUMMY_DEBUGGER', '0')),
-    reloader_type=getenv('HTTPDUMMY_RELOADER_TYPE', 'watchdog'),
-    use_reloader=use_reloader,
-    extra_files=extra_files,
-)
+    args = parser.parse_args()
+
+    extra_files = ['server.py']
+    if args.config_file:
+        extra_files.append(args.config_file.name)
+
+    app = HttpDummy(**vars(args))
+
+    print_logo()
+
+    run_simple(
+        args.address, args.port, app,
+        request_handler=NoLogRequestHandler,
+        use_debugger=args.werkzeug_debugger == 'on',
+        reloader_type=args.werkzeug_reloader_type,
+        use_reloader=args.werkzeug_reloader == 'on' and args.config_file,
+        extra_files=extra_files,
+    )
+
+if __name__ == "__main__":
+    main()

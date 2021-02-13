@@ -35,19 +35,17 @@ def print_logo():
 
 
 class HttpDummy(object):
-    def __init__(self, conf):
-        self.conf = conf
-        self._responses = {}
-        if self.conf['response_file']:
+    def __init__(self, **kwargs):
+        config_file = kwargs.get('config_file')
+        if config_file:
             try:
-                self._responses = yaml_safe_load(
-                    self.conf['response_file'])['responses']
+                config_all = yaml_safe_load(
+                    config_file)
             except Exception as exc:
+                # TODO do something here
                 raise exc
-
-    def get_response(self, path, method='GET'):
-
-        return r
+        self.responses = config_all.get('responses', {})
+        self.config = kwargs
 
     def print_request_info(self, request):
         print(
@@ -55,13 +53,16 @@ class HttpDummy(object):
             f'{request.environ.get("RAW_URI")}'
         )
 
-        if self.conf.get('headers'):
+        print_headers = self.config.get('print_headers') == 'on'
+        print_body = self.config.get('print_body') == 'on'
+
+        if print_headers:
             for (k, v) in request.headers:
                 print(f'{Style.DIM}{k}: {v}{Style.NORMAL}')
-            if self.conf.get('body') and len(request.data) > 0:
+            if print_body and len(request.data) > 0:
                 print()
 
-        if self.conf.get('body') and len(request.data) > 0:
+        if print_body and len(request.data) > 0:
             for line in request.data.decode('utf-8').splitlines():
                 print(f'{Style.DIM}{line}{Style.NORMAL}')
 
@@ -75,8 +76,8 @@ class HttpDummy(object):
         response.headers.set('Server', 'HTTPDummy')
 
         configured_resp = (
-            self._responses.get(f'{request.method} {request.path}', None)
-            or self._responses.get(request.path, None)
+            self.responses.get(f'{request.method} {request.path}', None)
+            or self.responses.get(request.path, None)
         )
 
         if not configured_resp:
