@@ -83,6 +83,7 @@ def main():
         help='path to configuration file',
         type=argparse.FileType('r'),
         nargs='?',
+        default='-',
     )
 
     args = parser.parse_args()
