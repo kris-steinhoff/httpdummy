@@ -92,13 +92,10 @@ class HttpDummy(object):
         # Set body
         if 'body_text' in configured_resp.keys():
             response.data = configured_resp['body_text']
+        elif 'body' in configured_resp.keys():
+            response.data = configured_resp['body']
         elif 'body_base64' in configured_resp.keys():
             response.data = b64decode(configured_resp['body_base64'])
-        # elif 'body_file' in configured_resp.keys():
-        #     response.data = open(configured_resp['body_file'])
-        elif 'body' in configured_resp.keys():
-            # TODO deprecation warning
-            response.data = configured_resp['body']
         else:
             response.data = 'HTTPDummy'
 
