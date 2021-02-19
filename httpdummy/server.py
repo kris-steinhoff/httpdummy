@@ -95,7 +95,10 @@ class HttpDummy(object):
         elif 'body' in configured_resp.keys():
             response.data = configured_resp['body']
         elif 'body_base64' in configured_resp.keys():
-            response.data = b64decode(configured_resp['body_base64'])
+            try:
+                response.data = b64decode(configured_resp['body_base64'])
+            except Exception as exc:
+                print(f'Error parsing body_base64: {exc}')
         else:
             response.data = 'HTTPDummy'
 
