@@ -17,11 +17,12 @@ COPY . /usr/src/app
 
 RUN pip install /usr/src/app
 
-CMD [ "sh", "-c", "httpdummy \
---address=${HTTPDUMMY_ADDRESS} \
---port=${HTTPDUMMY_PORT} \
---print-headers=${HTTPDUMMY_PRINT_HEADERS} \
---print-body=${HTTPDUMMY_PRINT_BODY} \
---server-reloader=${HTTPDUMMY_SERVER_RELOADER} \
---server-reloader-type=${HTTPDUMMY_SERVER_RELOADER_TYPE} \
---server-debugger=${HTTPDUMMY_SERVER_DEBUGGER}"]
+CMD [ "sh", "-c", "httpdummy\
+ --address=${HTTPDUMMY_ADDRESS}\
+ --port=${HTTPDUMMY_PORT}\
+ --print-headers=${HTTPDUMMY_PRINT_HEADERS}\
+ --print-body=${HTTPDUMMY_PRINT_BODY}\
+ --server-reloader=${HTTPDUMMY_SERVER_RELOADER}\
+ --server-reloader-type=${HTTPDUMMY_SERVER_RELOADER_TYPE}\
+ --server-debugger=${HTTPDUMMY_SERVER_DEBUGGER}\
+ ${HTTPDUMMY_CONFIG_FILE}"]
