@@ -64,7 +64,6 @@ class HttpDummy(object):
             for line in request.data.decode('utf-8').splitlines():
                 print(f'{Style.DIM}{line}{Style.NORMAL}')
 
-
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
         self.print_request_info(request)
