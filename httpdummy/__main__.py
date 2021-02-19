@@ -1,9 +1,9 @@
 import argparse
-from os import getenv
 
 from werkzeug.serving import run_simple
 
 from httpdummy.server import HttpDummy, NoLogRequestHandler, print_logo
+
 
 def main():
 
@@ -110,6 +110,7 @@ def main():
         use_reloader=args.server_reloader and args.config_file,
         extra_files=extra_files,
     )
+
 
 if __name__ == "__main__":
     main()
