@@ -1,5 +1,7 @@
 # HTTPDummy
 
+HTTPDummy is a development HTTP server tool that prints information about the requests it receives to stdout.
+
 ```
                                     __________________
                                    /        ________  \
@@ -20,8 +22,6 @@
                                                             |___/
 ```
 
-HTTPDummy is a development HTTP server tool that prints information about the requests it receives to stdout.
-
 ## Installation
 
 With PIP:
@@ -39,30 +39,42 @@ docker pull ksofa2/httpdummy
 ## Usage
 
 ```
-usage: httpdummy [-h] [-H [HEADERS]] [-B [BODY]] [-a ADDRESS] [-p PORT]
-                 [-r [RESPONSE_FILE]]
+usage: httpdummy [-h] [-a ADDRESS] [-p PORT] [-H | --print-headers {on,off}]
+                 [-B | --print-body {on,off}] [--server-reloader {on,off}]
+                 [--server-reloader-type {stat,watchdog}]
+                 [--server-debugger {on,off}]
+                 [config_file]
 
 A dummy http server that prints requests and responds
 
+positional arguments:
+  config_file           path to configuration file
+
 optional arguments:
   -h, --help            show this help message and exit
-  -H [HEADERS], --headers [HEADERS]
-  -B [BODY], --body [BODY]
   -a ADDRESS, --address ADDRESS
-  -p PORT, --port PORT
-  -r [RESPONSE_FILE], --response-file [RESPONSE_FILE]
+                        address to bind to (default 127.0.0.1)
+  -p PORT, --port PORT  port to open on (default 5000)
+  -H
+  --print-headers {on,off}
+                        print request headers to stdout
+  -B
+  --print-body {on,off}
+                        print request body to stdout
+  --server-reloader {on,off}
+                        enable Werkzeug server reloader (default on if
+                        config_file is specified)
+  --server-reloader-type {stat,watchdog}
+                        Werkzeug server reloader type (default watchdog)
+  --server-debugger {on,off}
+                        enable Werkzeug server debugger (default off)
 ```
 
-  - Add the `-H` flag to print request headers.
-  - Add the `-B` flag to print request body.
-
-Use the `--response-file` to specify a YAML file to set up custom responses for arbitrary method / path combinations. For example, this command...
-
 ```
-httpdummy --response-file ~/repsonses.yaml
+httpdummy ~/httpdummy_config.yml
 ```
 
-... with `~/responses.yaml` contents ...
+... with `~/httpdummy_config.yml` contents ...
 
 ```
 ---
@@ -87,17 +99,7 @@ responses:
 
 ... will make HTTPDummy respond to POST requests to `/api/foo` with the 201 status code, and the configured headers and body.
 
-NOTE: When started with a response file, HTTPDummy will listen for changes to that file and restart when a change is detected to reload the response definitions.
-
-## Environment Variables
-
-These environmental variables will be used as values for their corresponding command-line options. If the command-line option is used, that value will override the one set in the environment.
-
-  - `HTTPDUMMY_ADDRESS`
-  - `HTTPDUMMY_PORT`
-  - `HTTPDUMMY_HEADERS`
-  - `HTTPDUMMY_BODY`
-  - `HTTPDUMMY_RESPONSE_FILE`
+NOTE: When started with a config file, HTTPDummy will listen for changes to that file and restart when a change is detected to reload the config file.
 
 ## Docker
 
@@ -107,7 +109,18 @@ An image for HTTPDummy is available on DockerHub: <https://hub.docker.com/r/ksof
 docker run -it -p 127.0.0.1:5000:5000 ksofa2/httpdummy
 ```
 
-NOTE: The `HTTPDUMMY_HEADERS` and `HTTPDUMMY_BODY` are turned on by default in the Docker image.
+The Docker image can be configured with environment variables, which are set with these defaults:
+
+```
+HTTPDUMMY_ADDRESS=0.0.0.0
+HTTPDUMMY_PORT=5000
+HTTPDUMMY_PRINT_HEADERS=on
+HTTPDUMMY_PRINT_BODY=on
+HTTPDUMMY_SERVER_RELOADER=on
+HTTPDUMMY_SERVER_RELOADER_TYPE=stat
+HTTPDUMMY_SERVER_DEBUGGER=off
+HTTPDUMMY_CONFIG_FILE=
+```
 
 An example `docker-compose.yaml` file:
 
@@ -119,7 +132,7 @@ services:
   httpdummy:
     image: ksofa2/httpdummy
     environment:
-      - HTTPDUMMY_RESPONSE_FILE=/srv/responses.yaml
+      - HTTPDUMMY_CONFIG_FILE=/srv/httpdummy_config.yml
     ports:
       - 127.0.0.1:5000:5000
     volumes:
