@@ -35,7 +35,7 @@ def main():
     )
     print_headers_subgroup.add_argument(
         '--print-headers',
-        help='print request headers to stdout',
+        help='print request headers to stdout (default "off")',
         choices=['on', 'off'],
         default='off',
     )
@@ -50,7 +50,7 @@ def main():
     )
     print_body_subgroup.add_argument(
         '--print-body',
-        help='print request body to stdout',
+        help='print request body to stdout (default "off")',
         choices=['on', 'off'],
         default='off',
     )
