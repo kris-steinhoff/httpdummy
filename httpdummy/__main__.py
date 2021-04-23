@@ -95,6 +95,7 @@ def main():
 
     extra_files = ['server.py']
     if args.config_file:
+        args.server_reloader = True
         extra_files.append(args.config_file.name)
 
     app = HttpDummy(**vars(args))
@@ -106,7 +107,7 @@ def main():
         request_handler=NoLogRequestHandler,
         use_debugger=args.server_debugger,
         reloader_type=args.server_reloader_type,
-        use_reloader=args.server_reloader and args.config_file,
+        use_reloader=args.server_reloader,
         extra_files=extra_files,
     )
 
